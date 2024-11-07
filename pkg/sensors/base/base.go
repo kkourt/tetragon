@@ -7,6 +7,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/cilium/tetragon/pkg/cgtracker"
 	"github.com/cilium/tetragon/pkg/ksyms"
 	"github.com/cilium/tetragon/pkg/logger"
 	"github.com/cilium/tetragon/pkg/mbset"
@@ -85,6 +86,15 @@ var (
 
 	MatchBinariesSetMap = program.MapBuilder(mbset.MapName, Execve)
 
+	// Cgroup tracker programs and maps
+	CgTrackerMkdirProg   = cgtracker.MkdirProg().SetPolicy(basePolicy)
+	CgTrackerReleaseProg = cgtracker.ReleaseProg().SetPolicy(basePolicy)
+	CgTrackerMap         = func() *program.Map {
+		ret := program.MapBuilder(cgtracker.MapName, CgTrackerMkdirProg, CgTrackerReleaseProg)
+		ret.SetMaxEntries(cgtracker.MapEntries)
+		return ret
+	}()
+
 	sensor = sensors.Sensor{
 		Name: basePolicy,
 	}
@@ -142,6 +152,9 @@ func GetDefaultPrograms(cgroupRate bool) []*program.Program {
 	if cgroupRate {
 		progs = append(progs, CgroupRmdir)
 	}
+
+	// TODO: add configuration option
+	progs = append(progs, CgTrackerMkdirProg, CgTrackerReleaseProg)
 	return progs
 }
 
@@ -160,6 +173,10 @@ func GetDefaultMaps(cgroupRate bool) []*program.Map {
 	if cgroupRate {
 		maps = append(maps, CgroupRateMap, CgroupRateOptionsMap)
 	}
+
+	// TODO: add configuration option(s)
+	maps = append(maps, CgTrackerMap)
+
 	return maps
 
 }
