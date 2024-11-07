@@ -35,6 +35,7 @@ When a cgroup is deleted:
 
 TODO:
  -remove old cgroup code
+ - policyfilter update
 
 
 Other notes:
