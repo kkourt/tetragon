@@ -9,8 +9,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/cilium/ebpf"
+	"github.com/cilium/tetragon/pkg/bpf"
 	"github.com/cilium/tetragon/pkg/cgroups"
 	"github.com/cilium/tetragon/pkg/logger"
 
@@ -112,4 +114,32 @@ func (m *Map) AddCgroupTrackerPath(trackerPath string) error {
 		logger.GetLogger().WithField("cgtracker", true).WithError(walkErr).Warn("failed to retrieve some the cgroup id for some paths")
 	}
 	return nil
+}
+
+var (
+	glMap    Map
+	glError  error
+	setGlMap sync.Once
+)
+
+func globalMap() (Map, error) {
+	setGlMap.Do(func() {
+		fname := filepath.Join(bpf.MapPrefixPath(), MapName)
+		glMap, glError = OpenMap(fname)
+		log := logger.GetLogger()
+		if glError == nil {
+			log.Info("cgtracker map initialized")
+		} else {
+			log.WithError(glError).Warn("cgtracker map initialization failed")
+		}
+	})
+	return glMap, glError
+}
+
+func AddCgroupTrackerPath(cgRoot string) error {
+	m, err := globalMap()
+	if err != nil {
+		return err
+	}
+	return m.AddCgroupTrackerPath(cgRoot)
 }
