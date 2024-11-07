@@ -37,7 +37,7 @@ PROCESS = bpf_execve_event.o bpf_execve_event_v53.o bpf_fork.o bpf_exit.o bpf_ge
 	  bpf_map_test_p1.o bpf_map_test_p2.o bpf_map_test_p3.o \
 	  bpf_prog_iter.o
 
-CGROUP = bpf_cgroup_mkdir.o bpf_cgroup_rmdir.o bpf_cgroup_release.o
+CGROUP = bpf_cgroup_mkdir.o bpf_cgroup_rmdir.o bpf_cgroup_release.o bpf_cgtracker.o
 BPFTEST = bpf_lseek.o
 
 OBJSDIR       := objs/
